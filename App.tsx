@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Person } from './types';
 import { soldiersData } from './data/soldiers';
@@ -1228,26 +1229,39 @@ const HomePage: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
     );
 
     return (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4">
-            <div className="text-center mb-10 animate-fadeInUp">
-                 <img 
-                    src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
-                    alt="Logo de Zuheros" 
-                    className="h-20 w-auto mx-auto mb-4"
-                />
-                <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
-                    Mémorial de Zuheros
-                </h1>
-                <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto">
-                    Un sanctuaire numérique dédié à la mémoire, à l'héritage et à la résilience d'un village andalou.
-                </p>
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl w-full">
-                {navItems.map((item, index) => (
-                    <div key={item.id} className={item.span || ''} style={{ animationDelay: `${150 + index * 50}ms` }}>
-                        <CardLink item={item} />
-                    </div>
-                ))}
+        <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
+             <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute top-1/2 left-1/2 w-auto min-w-full min-h-full max-w-none -translate-x-1/2 -translate-y-1/2 z-0 object-cover"
+            >
+                <source src="https://videos.openai.com/az/vg-assets/assets%2Ftask_01jr9755jcew09en99avffkypn%2Ftask_01jr9755jcew09en99avffkypn_genid_49acb12e-309b-4f55-8bf2-63ad5588924a_25_04_07_22_51_900792%2Fvideos%2F00001_228476452%2Fsource.mp4?se=2025-11-08T04%3A16%3A54Z&sp=r&sv=2024-08-04&sr=b&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-02T03%3A42%3A05Z&ske=2025-11-09T03%3A47%3A05Z&sks=b&skv=2024-08-04&sig=aZ7tM5R2ZaCA4Ji%2BoGOlkMaarfcE9lCZtWggsGwhYqM%3D&ac=oaivgprodscus2" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-[--background-color] opacity-80 z-10"></div>
+            
+            <div className="relative z-20 w-full flex flex-col items-center">
+                <div className="text-center mb-10 animate-fadeInUp">
+                     <img 
+                        src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
+                        alt="Logo de Zuheros" 
+                        className="h-20 w-auto mx-auto mb-4"
+                    />
+                    <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
+                        Mémorial de Zuheros
+                    </h1>
+                    <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto">
+                        Un sanctuaire numérique dédié à la mémoire, à l'héritage et à la résilience d'un village andalou.
+                    </p>
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl w-full">
+                    {navItems.map((item, index) => (
+                        <div key={item.id} className={item.span || ''} style={{ animationDelay: `${150 + index * 50}ms` }}>
+                            <CardLink item={item} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
