@@ -14,6 +14,7 @@ import FeliciaAbenelPage from './FeliciaAbenelPage';
 import JuliaAbasenPage from './JuliaAbasenPage';
 import MarianoPerezPage from './MarianoPerezPage';
 import DivisionsPassePage from './DivisionsPassePage';
+import VelezInterviewPage from './VelezInterviewPage';
 
 const warColors: Record<string, { badge: string; text: string; glow: string }> = {
     'Guerre Hispano-Américaine': {
@@ -1521,6 +1522,12 @@ const articlesData = [
         title: 'Les Zuhérois, les divisions du passé',
         excerpt: 'Un clivage discret mais profond oppose les Familles Historiques (FHZ) et les Nouvelles Familles (FNZ), révélant deux mémoires et deux manières d\'habiter le village.',
         imageUrl: 'https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/576803297_2240782933070589_7884498261396094824_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=tSFLF9dEHjMQ7kNvwH9JDzD&_nc_oc=AdmFUwBWMBq0ivSYRu7GOTb4BrkNcHg4vYxnXv4q7raxf0X6dByeETpYW9LseGuDxSohHNT5WF-15f8cXltDAsUZ&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=sEvcLkpTMDBtSrb5tPhzaw&oh=00_Afho2srFIoP4L-aXwGNil3Pto6Dajrd7y5HBVcf98Luipw&oe=690E7501',
+    },
+    {
+        id: 'velez-interview',
+        title: '« Zuhéros, c’est peut-être le dernier livre d’Al-Andalus »',
+        excerpt: 'Entretien avec le professeur Manuel Velez. Dans le hall de l’ancienne maison de la culture, des photos en noir et blanc montrent des hommes en bérets, des femmes en foulards sombres...',
+        imageUrl: 'https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/576519066_2240937729721776_7888964909936397154_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=KZZ9ruic1qAQ7kNvwFRFeab&_nc_oc=AdkcZb0qNimr1-7zLFWKc_-cc5hwVw5lu89Vord-10rPkZO5EAmbdeQ08bpgtT_1lpDerhku7hsjPp6MRHaue4LU&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=mBvN1bg_tGl4nzhgyNHKBg&oh=00_AfiI-Bgrxu7JDyJX5kO14k12YHtnFCAelCFewQN3x6EwLQ&oe=690E9BF8',
     }
 ];
 
@@ -1833,6 +1840,7 @@ const articleContents = {
   'julia-abasen': { title: "Julia, la mère Zuhéroise qui a attendu son fils", content: "Personne n’osait lui dire frontalement « il est mort ». On parlait de lui comme d’un absent lointain, d’un homme qu’on espérait voir franchir un jour la rue, vieilli, amaigri, mais vivant..." },
   'mariano-perez': { title: `Mariano dit "Manuel" Perez, Maire de Zuhérois, enfant de la guerre`, content: "On l’a longtemps appelé « el viejo de los Granadinos », le vieux de la Calle de los Granadinos, à Zuhéros Bajo..." },
   'divisions-passe': { title: "Les Zuhérois, les divisions du passé", content: "À Zuhéros, petite ville andalouse perdue entre oliveraies et collines, les lignes de fracture ne suivent pas les contours habituels de la politique espagnole..." },
+  'velez-interview': { title: "« Zuhéros, c’est peut-être le dernier livre d’Al-Andalus »", content: "Entretien avec le professeur Manuel Velez. Dans le hall de l’ancienne maison de la culture, des photos en noir et blanc..." }
 };
 
 
@@ -2143,6 +2151,22 @@ const App: React.FC = () => {
                                 Retour aux articles
                             </button>
                             <DivisionsPassePage />
+                        </ContentPageLayout>
+                    );
+                 }
+                 if (selectedArticleId === 'velez-interview') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <VelezInterviewPage />
                         </ContentPageLayout>
                     );
                  }
