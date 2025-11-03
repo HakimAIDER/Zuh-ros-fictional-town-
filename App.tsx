@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Person } from './types';
 import { soldiersData } from './data/soldiers';
@@ -6,6 +5,14 @@ import { civilWarData } from './data/civilwar';
 import { disappearedData } from './data/disappeared';
 import { spanishAmericanWarData } from './data/spanishAmericanWar';
 import { modernConflictsData } from './data/modernConflicts';
+import { heroesData, Hero } from './data/heroes';
+import PersonDetailPage from './PersonDetailPage';
+import Article11M from './TerrorismVictimsPage';
+import GlobalSearch from './GlobalSearch';
+import ArticlesPage from './ArticlesPage';
+import FeliciaAbenelPage from './FeliciaAbenelPage';
+import JuliaAbasenPage from './JuliaAbasenPage';
+import MarianoPerezPage from './MarianoPerezPage';
 
 const warColors: Record<string, { badge: string; text: string; glow: string }> = {
     'Guerre Hispano-Américaine': {
@@ -55,7 +62,7 @@ const warColors: Record<string, { badge: string; text: string; glow: string }> =
     },
   };
 
-const PersonCard: React.FC<{ person: Person; index: number }> = ({ person, index }) => {
+const PersonCard: React.FC<{ person: Person; index: number; onSelect: (person: Person) => void; }> = ({ person, index, onSelect }) => {
   const isDisappeared = person.status === 'Disparu(e)';
   
   const colors = isDisappeared
@@ -66,9 +73,21 @@ const PersonCard: React.FC<{ person: Person; index: number }> = ({ person, index
       }
     : warColors[person.war] || warColors['Guerre du Rif'];
       
+  const summary = useMemo(() => {
+    const parts = person.mention.split('. ');
+    if (parts.length > 1) {
+        return parts.slice(1).join('. ').trim();
+    }
+    if (person.status === 'Disparu(e)') {
+        return `Disparu(e) à ${person.lastSeen}.`;
+    }
+    return person.mention;
+  }, [person]);
+
   return (
-    <div
-      className={`animate-fadeInUp group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:bg-slate-900/70 ${colors.glow}`}
+    <button
+      onClick={() => onSelect(person)}
+      className={`animate-fadeInUp group relative w-full text-left overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:bg-slate-900/70 ${colors.glow}`}
       style={{ animationDelay: `${index * 40}ms` }}
     >
       <div className="flex flex-col h-full">
@@ -102,8 +121,14 @@ const PersonCard: React.FC<{ person: Person; index: number }> = ({ person, index
               {isDisappeared && person.lastSeen && <p><span className="font-medium text-slate-500">Disparu(e) à:</span> {person.lastSeen}</p>}
               {person.camps && !isDisappeared && <p><span className="font-medium text-slate-500">Contexte:</span> {person.camps}</p>}
           </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-800">
+            <p className="text-xs italic text-slate-500 line-clamp-3">
+              {summary}
+            </p>
+          </div>
       </div>
-    </div>
+    </button>
   );
 };
 
@@ -187,7 +212,7 @@ const SearchAndFilterControls: React.FC<{
 };
 
 
-const MemorialPage: React.FC<{ allPeople: Person[], stats: Record<string, number> }> = ({ allPeople, stats }) => {
+const MemorialPage: React.FC<{ allPeople: Person[], stats: Record<string, number>, onSelectPerson: (person: Person) => void }> = ({ allPeople, stats, onSelectPerson }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [warFilter, setWarFilter] = useState<WarFilter>('all');
   
@@ -270,7 +295,7 @@ const MemorialPage: React.FC<{ allPeople: Person[], stats: Record<string, number
                 {displayedPeople.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {displayedPeople.map((person, index) => (
-                            <PersonCard key={person.id} person={person} index={index} />
+                            <PersonCard key={person.id} person={person} index={index} onSelect={onSelectPerson} />
                         ))}
                     </div>
                 ) : (
@@ -289,39 +314,161 @@ const MemorialPage: React.FC<{ allPeople: Person[], stats: Record<string, number
     );
 };
 
-const ContentPageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 page-container">
-        <div className="bg-slate-950/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 sm:p-12 max-w-5xl mx-auto shadow-2xl shadow-black/30">
-            {children}
-        </div>
-        <footer className="text-center mt-12 text-slate-500 text-sm">
-            <p>Leur souvenir, notre héritage.</p>
+const Footer: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
+    const footerLinks = [
+        { id: 'memorial', label: "Mémorial" },
+        { id: 'presentation', label: "Présentation" },
+        { id: 'wars', label: "Les Guerres" },
+        { id: 'heritage', label: "Héritage" },
+        { id: 'famous', label: "Personnalités" },
+        { id: 'heroes', label: "Héros" },
+    ];
+    return (
+        <footer className="bg-slate-950/70 border-t border-white/10 mt-12">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="md:col-span-1">
+                         <div className="flex items-center gap-3">
+                            <img 
+                                src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
+                                alt="Logo de Zuheros" 
+                                className="h-10 w-auto"
+                            />
+                            <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500">
+                                Mémorial de Zuheros
+                            </h2>
+                        </div>
+                        <p className="text-slate-400 text-sm mt-4">Un sanctuaire numérique dédié à la mémoire, à l'héritage et à la résilience d'un village andalou.</p>
+                    </div>
+                    <div className="md:col-span-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                            <div>
+                                <h3 className="text-sm font-semibold text-slate-300 tracking-wider uppercase">Explorer</h3>
+                                <ul className="mt-4 space-y-2">
+                                    {footerLinks.map(link => (
+                                        <li key={link.id}>
+                                            <button onClick={() => setView(link.id as View)} className="text-base text-slate-400 hover:text-blue-400 transition-colors">{link.label}</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                             <div>
+                                <h3 className="text-sm font-semibold text-slate-300 tracking-wider uppercase">Sections</h3>
+                                <ul className="mt-4 space-y-2">
+                                     <li><button onClick={() => setView('photography' as View)} className="text-base text-slate-400 hover:text-blue-400 transition-colors">Photographies</button></li>
+                                     <li><button onClick={() => setView('demography' as View)} className="text-base text-slate-400 hover:text-blue-400 transition-colors">Démographie</button></li>
+                                     <li><button onClick={() => setView('articles' as View)} className="text-base text-slate-400 hover:text-blue-400 transition-colors">Articles</button></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-12 border-t border-white/10 pt-8 text-center text-slate-500 text-sm">
+                    <p>Leur souvenir, notre héritage.</p>
+                </div>
+            </div>
         </footer>
-    </div>
+    )
+}
+
+export const ContentPageLayout: React.FC<{ children: React.ReactNode, setView: (view: View) => void }> = ({ children, setView }) => (
+    <>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 page-container">
+            <div className="bg-slate-950/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 sm:p-12 max-w-5xl mx-auto shadow-2xl shadow-black/30">
+                {children}
+            </div>
+        </div>
+    </>
 );
 
-const PresentationPage: React.FC = () => {
+const PresentationPage: React.FC<{setView: (view:View) => void}> = ({setView}) => {
     return (
-        <ContentPageLayout>
+        <ContentPageLayout setView={setView}>
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-6 tracking-tight">
-                Présentation de Zuheros
+                Zuhéros, histoire d’un village andalou (XVIᵉ–XXIᵉ siècle)
             </h1>
             <div className="prose-custom text-slate-300 max-w-none space-y-4 text-lg leading-relaxed">
-                <p>Zuhéros, blotti au cœur de la Sierra de Córdoba, apparaît dans le roman comme un microcosme de l’Andalousie profonde, un village suspendu entre la lumière et la mémoire, entre la pureté apparente de son présent et les ombres persistantes de son passé. Perché sur un éperon rocheux, entouré d’oliveraies qui s’étendent comme une mer d’argent jusqu’aux confins de la vallée du Guadalquivir, Zuhéros est un lieu où chaque pierre, chaque mur blanchie à la chaux, chaque fontaine semble murmurer les échos d’un temps révolu.</p>
-                <p>Officiellement, c’est un village andalou catholique, fier de ses processions, de ses fêtes patronales et de ses traditions agricoles. Mais derrière cette façade de ferveur chrétienne se dissimule un héritage plus ancien, plus secret — celui d’un passé morisque encore perceptible dans les gestes, les mots et les silences de ses habitants. Zuhéros est, dans l’univers du roman, une enclave de l’histoire, un espace où les siècles se superposent comme les couches d’un manuscrit effacé, dont on devine encore les lettres cachées sous la chaux du temps.</p>
-                <p>Ses quartiers anciens — <strong>Zuheros Viejo</strong>, <strong>Zuheros Alto</strong>, <strong>Zuheros Bajo</strong>, <strong>Tamesguida</strong> et <strong>Almanara</strong> — forment la trame originelle du village, bâtie au fil des générations par des familles issues des lignées morisques. Les <strong>Morra de Granada</strong>, les <strong>Abenadid</strong>, les <strong>Zenati</strong>, les <strong>Abenfassi</strong>, les <strong>Abengoa</strong>, les <strong>Muley</strong>, les <strong>Barbari</strong> ou encore les <strong>Perez</strong> en furent les piliers. Ces noms, aujourd’hui hispanisés, portent pourtant l’empreinte d’un passé arabe et andalou que l’histoire officielle a longtemps cherché à effacer. Derrière les patronymes castillans, derrière les façades blanches et les autels ornés de croix, se cache une mémoire ancienne, parfois inconsciente, qui irrigue encore les gestes du quotidien.</p>
-                <p>Dans les ruelles étroites, où le soleil dessine des arabesques de lumière sur les murs, on entend parfois des mots du dialecte zuhérois, vestiges d’un espagnol mêlé d’arabismes, comme un souffle oublié d’Al-Andalus : <em>imabel</em> pour la foi, <em>rama</em> pour la miséricorde, <em>atibelá</em> pour la confiance en Dieu. Ces mots, transmis sans en comprendre l’origine, révèlent la persistance souterraine d’un héritage spirituel et culturel que les siècles n’ont pas réussi à éteindre. De même, certaines coutumes — la façon d’honorer les morts, de se laver avant la prière, ou de s’abstenir de porc — se sont perpétuées sous une forme altérée, vidées de leur sens religieux premier, mais demeurées comme des réflexes de fidélité à un passé lointain.</p>
-                <p>Zuhéros, dans le roman, n’est pas seulement un décor : il est un personnage à part entière, un organisme vivant façonné par la lente respiration de l’histoire. C’est un village où la Reconquista n’a jamais tout à fait eu raison des âmes, où la christianisation s’est faite à travers l’effacement plus que par la conversion, et où la mémoire des ancêtres a trouvé refuge dans la banalité des gestes. Au XVIᵉ siècle, les familles morisques de Zuhéros ont dû taire leurs prières, renommer leurs enfants, latiniser leurs noms. Leurs descendants, au fil des siècles, ont fini par oublier les origines exactes de ces traditions, mais non leur presence diffuse.</p>
-                <p>Au XXᵉ siècle, le village a connu d’autres métamorphoses : l’émigration vers les villes, la montée du tourisme, la modernisation agricole. Pourtant, dans les voix des anciens, dans les senteurs d’huile d’olive, de fromage de chèvre et de jasmin, dans les processions silencieuses où la foi se mêle à une ferveur d’un autre âge, Zuhéros garde son mystère. Certains disent qu’il n’y a pas de lieu en Andalousie où la mémoire d’Al-Andalus soit plus vivante et plus dissimulée à la fois.</p>
-                <p>Ainsi, Zuhéros devient dans le roman le miroir d’une Espagne double : chrétienne dans sa foi visible, musulmane dans ses racines invisibles, andalouse dans sa chair et morisque dans son inconscient. C’est le cœur de l’Andalousie, un cœur battant au rythme des siècles, où la lumière éclatante du sud ne parvient jamais à dissiper complètement l’ombre de la Sierra.</p>
+                <p>Zuhéros est un nom que les grandes synthèses historiques ignorent souvent et que les cartes ont tardé à adopter, mais dont la trajectoire concentre, à l’échelle d’un bourg, plusieurs siècles de l’histoire ibérique : Reconquista et expulsions, crypto-pratiques et assimilation, guerres et saignée démographique, migration et recomposition sociale. C’est l’histoire d’un lieu qui a vécu longtemps en marge, qui a protégé ses habitudes et son parler, et qui paie au XXᵉ siècle un tribut humain disproportionné avant d’entrer, au XXIᵉ, dans un temps où le patrimoine devient l’essentiel de ce qui reste.</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Fondations (après 1570) : un village morisque sous tutelle chrétienne</h2>
+                <p>La naissance de Zuhéros s’inscrit dans l’onde de choc de la révolte des Alpujarras (1568–1571). Après la répression, des lignées morisques — parfois insérées dans des alliances avec la petite noblesse chrétienne — reçoivent ou achètent des terres dans une zone faiblement peuplée de la Sierra cordouane. À l’écart des routes marchandes, le noyau se structure en hameaux : <strong>Zuheros Viejo</strong>, <strong>Zuheros Alto</strong>, <strong>Zuheros Bajo</strong>, <strong>Tamesguida</strong>, <strong>Almanara</strong>.</p>
+                <p>Très tôt, la communauté s’organise autour d’un <strong>comité villageois</strong> — l’ancêtre du <strong>CFHZ</strong> (Comité des Familles Historiques de Zuhéros) — qui arbitre les usages, gère des litiges, administre des fonds de secours, et surtout compose avec l’autorité ecclésiastique : l’Église encadre, mais le comité conserve un <strong>espace d’autonomie pratique</strong> (charités, fêtes, dots, funérailles, usages des olivettes). Cette marge locale devient un rempart discret où se diluent, puis se transforment, des pratiques héritées de l’islam.</p>
+
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">XVIIᵉ–XVIIIᵉ siècles : assimilation, crypto-rituels et mémoire ténue</h2>
+                <p>Le <strong>décret de 1609</strong> sur l’expulsion des morisques ne fabrique pas partout des réalités identiques. À Zuhéros, l’isolement, l’endogamie et le pragmatisme des autorités locales aboutissent à une <strong>assimilation surveillée mais progressive</strong>. Les mariages, les baptêmes, la messe dominicale installent, au fil des générations, un catholicisme de plus en plus incontesté. Pourtant, des rémanences subsistent longtemps dans le <strong>domestique</strong> : formules murmurées, orientation de certaines tombes « vers l’aube », précautions alimentaires, discrètes ablutions, vocabulaire rituel.</p>
+                <p>Dans les récits familiaux réapparaissent des bribes de <strong>lexique zuhéros</strong> — <strong>Imabel</strong> (foi), <strong>Atibelá</strong> (confiance), <strong>Laulacuela</strong> (« il n’est de force et de puissance que par Dieu »), <strong>Munafe</strong> (hypocrite), <strong>Almacra</strong> (cimetière), <strong>Elhanza</strong> (cérémonie funéraire). Ce ne sont pas des hispanismes ordinaires : ce sont des fossiles linguistiques qui <strong>indexent une mémoire religieuse</strong>. L’ordre de phrase <strong>verbe–sujet–complément</strong> en narration (<em>Dijo María la verdad</em>, <em>Llegó Juan temprano</em>) devient l’une des signatures du parler local, prolongement d’un castillan méridional ancien et possible calque prosodique d’un long contact avec l’arabe.</p>
+                <p>Les archives privées signalent des objets plus explicites : on évoque un <strong>coran daté de 1743</strong> conservé dans le manoir d’une famille <strong>Morra de Granada</strong>, annoté, partiellement retranscrit dans une <strong>romance locale aljamiada</strong> (castillan écrit à l’arabe). Qu’on en possède un exemplaire ne prouve pas une pratique généralisée à cette date ; cela atteste au minimum l’existence d’un <strong>îlot de lettrés</strong> gardant la trace consciente d’un héritage religieux. L’<strong>inconscience</strong> de l’origine islamique que les descendants revendiquent parfois au XXᵉ siècle ne vaut donc pas pour les XVIIᵉ–XVIIIᵉ : ici, la mémoire <strong>consciente</strong> survit plus longtemps qu’ailleurs, avant de s’estomper.</p>
+
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">XIXᵉ siècle : isolement fertile, micro-modernités, premières dispersions</h2>
+                <p>Jusqu’au milieu du XIXᵉ, <strong>Zuhéros n’apparaît pas toujours sur les cartes</strong>. L’isolement protège un <strong>agro-système d’olivettes</strong>, des ateliers, des petites boutiques tenues par des lignées : <strong>Muley</strong> (boucherie), <strong>Abascal</strong> (restauration), <strong>Abenfassi</strong>, <strong>Zenati</strong>, <strong>Morra de Granada</strong>, <strong>Cordoban</strong>, <strong>Abenadid</strong> (terres, murs, commerces). La toponymie garde la patine de l’ancien monde ; la vie rythmée par les campagnes d’olive structure les sociabilités.</p>
+                <p>Mais c’est aussi un siècle de <strong>micro-dispersions</strong> : des familles quittent le village — <strong>Siavental</strong> vers Grenade, <strong>Avencerano</strong> et <strong>Venalo</strong> vers Cordoue ; d’autres, comme <strong>Almoréz</strong>, <strong>Zafreno</strong>, <strong>Abenfaro</strong>, s’éteignent faute d’héritiers masculins ; la rumeur veut que les <strong>Avenar</strong> aient <strong>fui vers l’Empire ottoman</strong> et <strong>réaffirmé l’islam</strong> — indice marginal mais parlant d’un <strong>spectre de fidélités</strong> encore envisageable pour quelques-uns à cette époque.</p>
+
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Trois guerres et une saignée</h2>
+                <p>Entre la <strong>guerre hispano-américaine</strong> (1898), la <strong>guerre du Rif</strong> (années 1920) et la <strong>guerre civile</strong> (1936–1939), Zuhéros perd <strong>695 personnes</strong> (estimation cumulative : <strong>167 + 193 + 335</strong>). Les deux premiers conflits frappent <strong>quasi exclusivement des hommes jeunes</strong> ; la guerre civile ajoute les morts de front, d’arrière-front et les exécutions, majoritairement masculines.</p>
+                <p>L’impact est <strong>structurel</strong>. Sur un village d’environ <strong>1 900–2 100 habitants</strong> à l’époque, cette hémorragie cumulée représente, selon les estimations par stock, <strong>60–67 % d’un effectif masculin moyen</strong> sur la période. Concrètement, cela produit :</p>
+                <ul className="list-disc list-inside space-y-2">
+                    <li>un <strong>effondrement des cohortes de prétendants</strong> au mariage,</li>
+                    <li>des <strong>veuvages précoces</strong> et des fiançailles sans noces (la figure de <strong>Felicia Abenel</strong>, « fiancée-veuve » à vie, qui n’épousera « que la tombe » de <strong>Pedro</strong>),</li>
+                    <li>une <strong>chute durable de la natalité locale</strong>,</li>
+                    <li>des <strong>exodes</strong> de femmes avec enfants vers les villes, puis l’étranger,</li>
+                    <li>le basculement de <strong>rues entières</strong> en alignements de volets clos.</li>
+                </ul>
+                <p>Le <strong>CFHZ</strong> (ou son prédécesseur) crée un <strong>Comité de gestion des familles précarisées par la guerre (CFPG)</strong> pour soutenir <strong>veuves, orphelins, âgés isolés, invalides</strong>. Les récits oraux enregistrent la détresse : <strong>Julia Abasen-Jalifa</strong>, attendant son fils <strong>Miguel</strong> disparu, cuisine « pour trois puis pour deux » des décennies durant ; la découverte tardive d’une <strong>fosse</strong> au XXIᵉ siècle permettra enfin d’inscrire son nom au cimetière <strong>Almacra</strong>.</p>
+                <p>La <strong>guerre du Rif</strong> est ressentie comme un <strong>tribut insensé</strong> : près de <strong>200 jeunes</strong> de Zuhéros tombés dans une guerre coloniale lointaine ; puis, dix ans plus tard, la <strong>guerre civile</strong> qui fauche à nouveau. Le parler local s’en ressent : la disparition d’une partie de la jeunesse masculine coupe des <strong>chaînes de transmission</strong> du dialecte (chants de cueillette, proverbes, tours d’adresse). La société bascule vers un <strong>conservatisme de survie</strong> : la famille, la terre, le respect des rôles deviennent socle ; plus tard, certains résumeront à tort cela à un simple « franquisme », alors que la matrice est plus <strong>anthropologique</strong> (protéger ce qui reste) que strictement idéologique.</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Entre résilience silencieuse et ouverture contrainte</h2>
+                <p>L’après-guerre civile laisse un village <strong>épuisé</strong>. L’économie repart, mais des commerces n’ont <strong>pas d’héritiers</strong> ; d’autres sont <strong>reprise</strong> par des familles <strong>arrivantes</strong>. Des <strong>diasporas</strong> se forment : vers <strong>Córdoba</strong>, <strong>Madrid</strong>, et à l’étranger (notamment <strong>Argentine, Chili, Uruguay</strong>, un peu <strong>Italie</strong> et <strong>sud de la France</strong>). À <strong>Oran</strong>, on croise des <strong>Zuhérois</strong> : <strong>Paola</strong>, <strong>Ricardo</strong>, une domestique <strong>Aïcha</strong> venue de Nedroma ; d’anciennes familles tissent des liens avec des <strong>Bénichou</strong> juifs d’Algérie — histoires d’exils croisés.</p>
+                <p>Dans ce contexte, la figure de <strong>Mariano Pérez</strong> — survivant, communiste discret, maire à l’heure où Zuhéros devient <strong>municipalité</strong> — cristallise un <strong>choix historique</strong> : <strong>ouvrir</strong> le village aux <strong>nouvelles familles</strong> (<strong>FNZ</strong>) pour <strong>éviter l’étouffement</strong>. La décision est mal vécue par une partie des <strong>FHZ</strong> (Familles Historiques de Zuhéros), attachées à l’entre-soi d’antan ; mais <strong>démographiquement</strong>, le village <strong>n’a plus</strong> les moyens de se suffire. Mariano meurt en <strong>1979</strong>, <strong>isolé</strong>, sans descendance, figure tragique d’un « réformateur malgré lui », dont les mémoires livrent un motif simple : « sauver la vie en acceptant d’être autre ».</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Recomposition, mémoire et basculement</h2>
+                <p>Le <strong>tournant</strong> s’opère dans les années 1980 : les <strong>FHZ passent sous 50 %</strong> (cap symbolique franchi en <strong>1983</strong>). Le mouvement ne se renverse plus. Au fil des décennies, la ville <strong>grandit</strong> (urbanisation périphérique, nouveaux quartiers), mais le <strong>cœur ancien</strong> se <strong>vide</strong>. Dans les années 2000–2020, la part FHZ devient <strong>minoritaire</strong>, l’<strong>âge moyen</strong> se <strong>hausse</strong> (<strong>≈ 50 ans</strong> aujourd’hui), et le <strong>stock jeune</strong> diminue.</p>
+                <p>En <strong>2024</strong>, Zuhéros compte <strong>≈ 8 300 habitants</strong>, dont <strong>≈ 450 FHZ</strong> ; en <strong>2025</strong>, les recensements internes parlent <strong>d’environ 704 FHZ</strong> à une date récente (≈ 8 %), tendance baissière. L’<strong>établissement Abenhumeya</strong> (privé), bastion scolaire historique des FHZ, supprime des <strong>classes faute d’effectifs</strong>. En <strong>2025</strong>, le <strong>CFHZ</strong> change d’intitulé et devient <strong>Comité pour les affaires culturelles et du patrimoine</strong>, symbole d’un passage de la <strong>gouvernance communautaire</strong> à la <strong>curation patrimoniale</strong>.</p>
+                <p>Les <strong>biens</strong> (terres, murs commerciaux) restent très souvent <strong>propriété FHZ</strong>, mais la <strong>gestion</strong> est fréquemment <strong>déléguée à des FNZ</strong> : <strong>présence patrimoniale</strong> sans <strong>base humaine équivalente</strong>. Dans les rues, des <strong>noms</strong> racontent encore un passé (<strong>Abenadid, Abendanan, Abenfassi, Abenel, Venmegrí, Sánez, Cuérrez, Manzores, Férez, Harbez, Bucares, Setes, Echeviles, Avenizar, Avenmes, Malques, Avenbéz, Avencores, Najares, Nares, Belés, Témez, Talores, Talales…</strong>), mais la <strong>chaîne sociale</strong> qui les soutenait se réduit.</p>
+                <p>La <strong>langue</strong> s’éteint. La <strong>variante zuhéroise du castillan</strong> — ordre Verbe–Sujet–Complément, prosodie narrative, lexique rituel — ne survit plus que chez quelques très âgés (on cite <strong>Damián Avunasem</strong>, <strong>Penélope Abendanan</strong>, <strong>Francisca Aznar</strong>, <strong>Elena Belés</strong>). Les <strong>pratiques</strong> (prières de vieilles dames, alphabet de gestes funéraires, boucherie <strong>Muley</strong> « seul lieu sûr » pour la viande jusqu’aux années 1960) ont disparu. Le <strong>costume</strong> de mariée — robe de soie couvrant bras et jambes jusqu’au-dessus de la cheville, ceinture d’argent, gilet brodé, ballerines et bas — est devenu objet de vitrine.</p>
+                <p>L’époque récente connaît des départs symboliques : <strong>fermeture</strong> du <strong>Bar Solère</strong> (tenu par <strong>Adriana Pérez Jakimi</strong> et <strong>Julio Muley</strong>), projet d’<strong>émigration</strong> du jeune <strong>Antony Muley</strong> (figure d’une génération FHZ numériquement rare), <strong>diaspora</strong> désormais très lointaine (on estime <strong>3 000–4 000</strong> personnes d’origine FHZ en Espagne hors du village, <strong>2 000–3 000</strong> à l’étranger). Le présent est celui d’un <strong>Zuhéros vivant</strong>, administrativement solide, mais où le <strong>noyau historique</strong> s’est amaigri au point de ne plus assurer la <strong>reproduction sociale</strong> de sa singularité.</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Identités croisées : catholicisme social, mémoire morisque, débats contemporains</h2>
+                <p>D’un point de vue <strong>identitaire</strong>, les FHZ contemporains se définissent <strong>avant tout comme Espagnols et catholiques</strong> ; l’« origine maure » se dit aujourd’hui en termes <strong>culturels</strong>, <strong>généalogiques</strong>, <strong>patrimoniaux</strong>, rarement religieux. Les <strong>vestiges</strong> (mots, tombes orientées, toponymes) n’impliquent plus de <strong>croyance</strong>, mais un <strong>récit</strong> — parfois tenu, parfois disputé.</p>
+                <p>La montée récente d’une <strong>petite communauté musulmane</strong> (environ <strong>500 personnes</strong> à une date citée), composée surtout de <strong>migrants récents</strong> (Maroc, Balkans, Pakistan, Syrie), ne produit <strong>pas</strong> une « renaissance morisque » : ce sont d’autres trajectoires, d’autres répertoires. Certains FHZ s’opposent à une <strong>mosquée</strong> non par « retour » ou « refus de soi », mais parce qu’ils vivent <strong>pleinement</strong> comme <strong>catholiques</strong> et <strong>locaux</strong>, situant leur <strong>héritage</strong> sur le plan <strong>historico-culturel</strong>. Dans cette tension, on perçoit une <strong>confusion fréquente</strong> entre <strong>héritage</strong> et <strong>religion vivante</strong>.</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Les effets durables des guerres : la démographie comme destin</h2>
+                <p>Si l’on cherche une clé unique à la trajectoire longue de Zuhéros, elle tient dans la <strong>démographie contrainte</strong> par les <strong>trois guerres</strong> (1898–1939). L’onde de choc, on l’a dit, a <strong>amputé</strong> des <strong>cohortes masculines</strong> au-delà de ce que peut encaisser un petit territoire. De là découlent en cascade :</p>
+                 <ul className="list-disc list-inside space-y-2">
+                    <li><strong>mariages reportés ou annulés</strong>,</li>
+                    <li><strong>naissances manquées</strong> sur plusieurs décennies,</li>
+                    <li><strong>surreprésentation des femmes âgées</strong> dans certains îlots,</li>
+                    <li><strong>exode</strong> des dernières générations actives vers l’extérieur,</li>
+                    <li><strong>substitution</strong> démographique par des apports FNZ,</li>
+                    <li><strong>translation</strong> de la culture de l’<strong>habitus</strong> (pratiques vivantes) vers la culture du <strong>patrimoine</strong> (objets et récits).</li>
+                </ul>
+                <p>C’est pourquoi il faut distinguer <strong>deux « guérisons »</strong> : la <strong>ville</strong> (qui vit, grossit, s’équipe) et la <strong>communauté FHZ</strong> (qui ne se reconstitue pas). Zuhéros « s’en remet » comme <strong>organisme urbain</strong> ; il ne « s’en remet pas » comme <strong>lignage social</strong> singulier.</p>
+
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Mémoire, savoir et transmission : ce qu’il reste à faire</h2>
+                <p>Le tournant actuel — <strong>rebaptême du CFHZ</strong> en comité culturel, débats sur la <strong>protection du cimetière Almacra</strong>, sur la <strong>didactisation</strong> du dialecte — crée un <strong>cadre d’action</strong>. Plusieurs chantiers sont à portée de main :</p>
+                <ul className="list-disc list-inside space-y-2">
+                    <li><strong>Corpus oral</strong> du dialecte (enregistrements, lexique audio, proverbes) en libre accès.</li>
+                    <li><strong>Histoire orale</strong> des familles (Paola, Ricardo, Damián, Penélope…) : carnets, lettres, photos.</li>
+                    <li><strong>Toponymie protégée</strong> et <strong>plaques QR</strong> (micro-notices sonores).</li>
+                    <li><strong>Semaine du Regreso</strong> (diaspora) : ateliers, cuisine, visite guidée du vieux bourg.</li>
+                    <li><strong>Micro-bourses</strong> pour jeunes (FHZ et FNZ) qui documentent un objet de l’héritage.</li>
+                    <li><strong>Muséographie légère</strong> (une salle, trois vitrines : dialecte, rites, métiers).</li>
+                    <li><strong>Programme scolaire Abenhumeya – “Zuhéros mémoire vivante”</strong>.</li>
+                    <li><strong>Adopta-Almacra</strong> (entretien des tombes, fiches biographiques).</li>
+                    <li><strong>Cartographie</strong> des noms hispanisés et de leurs <strong>origines</strong> avec trajectoires migratoires.</li>
+                </ul>
+                <p>Ce n’est pas une « restauration » ; c’est une <strong>conservation active</strong> qui transforme une disparition annoncée en <strong>héritage partageable</strong>.</p>
+                
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mt-10 pt-6 border-t border-slate-800 tracking-tight">Conclusion : une ville vivante, un monde qui s’éteint</h2>
+                <p>Zuhéros a été <strong>fondé</strong> par des familles <strong>morisques</strong> qui ont négocié leur <strong>survie</strong> dans un espace d’<strong>autonomie locale</strong> ; il a <strong>assimilé</strong> peu à peu l’orthodoxie catholique, tout en <strong>sédimentant</strong> dans la langue et les gestes des <strong>échos</strong> d’un autre horizon. Il a <strong>sacrifié</strong> une part immense de sa <strong>vitalité</strong> entre 1898 et 1939 et n’a jamais reconstitué la <strong>trame sociale</strong> qui faisait sa singularité. Les <strong>nouvelles familles</strong> ont permis à la <strong>ville</strong> de continuer, mais le <strong>village morisque</strong> — celui du dialecte V-S-C, des prières murmurées, des bouchers Muley et des noces à gilet brodé — s’estompe.</p>
+                <p>Dire cela n’est pas entériner un deuil muet. C’est au contraire <strong>nommer</strong> ce qui fut, <strong>montrer</strong> ce qui reste, et <strong>transmettre</strong> ce qui peut l’être. Zuhéros ne redeviendra pas le <strong>Belmonte des Maures</strong> qu’il aimait rêver être ; il peut devenir un <strong>lieu de savoir et de mémoire</strong>, où la ville moderne côtoie un <strong>patrimoine vivant</strong> que l’on nourrit de <strong>voix</strong>, de <strong>noms</strong>, de <strong>lieux</strong>, d’<strong>histoires</strong>. Alors, le dernier chapitre d’Al-Andalus ici ne sera pas une <strong>page blanche</strong>, mais une <strong>page lue à voix haute</strong>, chaque année, sur la place et au cimetière Almacra, pour que les vivants sachent <strong>d’où vient la lumière de l’aube</strong> qui, jadis, orientait les tombes et, aujourd’hui encore, protège silencieusement le village.</p>
             </div>
         </ContentPageLayout>
     );
 };
 
-const WarsPage: React.FC = () => {
+const WarsPage: React.FC<{setView: (view:View) => void}> = ({setView}) => {
     return (
-        <ContentPageLayout>
+        <ContentPageLayout setView={setView}>
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
                 Les guerres et le prix payé
             </h1>
@@ -331,7 +478,7 @@ const WarsPage: React.FC = () => {
                 <p className="lead italic">Reportage – Mémoire, guerres et survie d’un bourg andalou frappé par deux hécatombes successives.</p>
                 <p><strong>ALMACRA (province de Cordoue).</strong> À l’aube, la lumière se coince dans les cyprès. Le vieux cimetière d’Almacra, la pierre tiède, des dates et des initiales en rangs disjoints : c’est là que Zuhéros garde ses morts. On ne parle pas de gloire, on parle de tenue. Les habitants les désignent simplement : « ceux qui sont tombés pour l’Espagne ». Derrière la formule, des vies interrompues, un village amputé, une mémoire qui se récite par noms, par escaliers, par places.</p>
                 
-                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 pt-6 border-t border-slate-800 tracking-tight !mt-10">1898 : L'adieu à l'Empire, les premiers deuils lointains</h3>
+                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 pt-6 border-t border-slate-800 tracking-tight !mt-10">L'adieu à l'Empire, les premiers deuils lointains</h3>
                 <p>Bien avant les saignées du XXᵉ siècle, Zuhéros a payé son tribut à une guerre lointaine, celle qui marqua la fin de l'empire espagnol. En 1898, des dizaines de jeunes hommes du village furent envoyés à Cuba, à Porto Rico et aux Philippines pour défendre les dernières possessions ultramarines. Pour beaucoup, ce fut un voyage sans retour.</p>
                 <p>Le mémorial recense près de 170 victimes de ce conflit. L'ennemi n'était pas seulement l'armée américaine ; il était aussi invisible et implacable. Les registres funestes parlent de "paludisme", de "fièvre jaune", de "dysenterie", maladies qui décimèrent les troupes dans un environnement tropical hostile. Les batailles navales, comme celles de Santiago de Cuba ou de la baie de Manille, furent des désastres où les marins de Zuhéros périrent par "noyade", "brûlures" ou "asphyxie", piégés dans des navires obsolètes.</p>
                 <p>Pour le village, ce fut une nouvelle forme de deuil. Les nouvelles arrivaient des mois plus tard, souvent laconiques, laissant les familles dans une incertitude douloureuse. Ce conflit, bien que souvent éclipsé par les tragédies ultérieures, a été le premier à inscrire dans la mémoire de Zuhéros le motif récurrent de la jeunesse sacrifiée pour la patrie, loin, très loin des oliveraies andalouses.</p>
@@ -376,9 +523,9 @@ const WarsPage: React.FC = () => {
     );
 };
 
-const HeritagePage: React.FC = () => {
+const HeritagePage: React.FC<{setView: (view:View) => void}> = ({setView}) => {
     return (
-        <ContentPageLayout>
+        <ContentPageLayout setView={setView}>
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
                 Zuhéros, l’héritage en sursis
             </h1>
@@ -510,7 +657,7 @@ const ImageModal: React.FC<{ image: { src: string; description: string }; onClos
 };
 
 
-const PhotographyPage: React.FC = () => {
+const PhotographyPage: React.FC<{setView: (view:View) => void}> = ({setView}) => {
     const [selectedImage, setSelectedImage] = useState<{src: string; description: string} | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -600,7 +747,7 @@ const PhotographyPage: React.FC = () => {
     const currentImage = images[currentIndex];
 
     return (
-        <ContentPageLayout>
+        <ContentPageLayout setView={setView}>
              <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
                 Photographies de Zuheros
             </h1>
@@ -785,7 +932,7 @@ const famousPeopleData = [
       name: "David Zenati-Cordoban",
       lifespan: "1956–",
       title: "Avocat des droits et de la mémoire, affaire des disparus",
-      imageUrl: "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/af8115d9-b96f-43a9-ba9d-9ebe0be15473.png",
+      imageUrl: "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/af8115d9-b96f-4349-ba9d-9ebe0be15473.png",
       details: [
         { label: "Né", value: "Zuhéros Bajo, fils d’un horloger." },
         { label: "Formation", value: "Avocat à Madrid, spécialiste du droit de la mémoire."}
@@ -899,9 +1046,11 @@ const PersonProfile: React.FC<{ person: typeof famousPeopleData[0] }> = ({ perso
     );
 };
 
-const FamousPeoplePage: React.FC = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-
+const FamousPeoplePage: React.FC<{
+    currentIndex: number;
+    setCurrentIndex: (index: number) => void;
+    setView: (view: View) => void;
+}> = ({ currentIndex, setCurrentIndex, setView }) => {
     const goToSlide = (slideIndex: number) => {
         setCurrentIndex(slideIndex);
     };
@@ -910,18 +1059,18 @@ const FamousPeoplePage: React.FC = () => {
         const isFirstSlide = currentIndex === 0;
         const newIndex = isFirstSlide ? famousPeopleData.length - 1 : currentIndex - 1;
         setCurrentIndex(newIndex);
-    }, [currentIndex]);
+    }, [currentIndex, setCurrentIndex]);
 
     const goToNext = useCallback(() => {
         const isLastSlide = currentIndex === famousPeopleData.length - 1;
         const newIndex = isLastSlide ? 0 : currentIndex + 1;
         setCurrentIndex(newIndex);
-    }, [currentIndex]);
+    }, [currentIndex, setCurrentIndex]);
 
     const currentPerson = famousPeopleData[currentIndex];
 
     return (
-      <ContentPageLayout>
+      <ContentPageLayout setView={setView}>
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-6 tracking-tight">
           Zuhérois Connus
         </h1>
@@ -930,13 +1079,13 @@ const FamousPeoplePage: React.FC = () => {
         </div>
 
         <div className="mt-8 relative">
-            <button onClick={goToPrevious} aria-label="Profil précédent" className="absolute top-1/2 -left-4 md:-left-12 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 hidden lg:block">
+            <button onClick={goToPrevious} aria-label="Profil précédent" className="absolute top-1/2 left-0 md:-left-6 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <div key={currentIndex} className="animate-fadeInUp" style={{ animationDuration: '400ms' }}>
                  <PersonProfile person={currentPerson} />
             </div>
-            <button onClick={goToNext} aria-label="Profil suivant" className="absolute top-1/2 -right-4 md:-right-12 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 hidden lg:block">
+            <button onClick={goToNext} aria-label="Profil suivant" className="absolute top-1/2 right-0 md:-right-6 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
         </div>
@@ -972,7 +1121,7 @@ const FamousPeoplePage: React.FC = () => {
     );
 };
 
-const DemographyPage: React.FC = () => {
+const DemographyPage: React.FC<{setView: (view:View) => void}> = ({setView}) => {
     const data = [
         { year: 1897, value: 2000 }, { year: 1898, value: 2012 }, { year: 1899, value: 1857 },
         { year: 1900, value: 1868 }, { year: 1901, value: 1878 }, { year: 1902, value: 1889 },
@@ -1088,7 +1237,7 @@ const DemographyPage: React.FC = () => {
 
 
     return (
-        <ContentPageLayout>
+        <ContentPageLayout setView={setView}>
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
                 Démographie : Le village à l'épreuve des guerres
             </h1>
@@ -1114,15 +1263,144 @@ const DemographyPage: React.FC = () => {
     );
 };
 
+const HeroProfile: React.FC<{ hero: Hero }> = ({ hero }) => (
+    <article className="py-8">
+        <header className="mb-8 text-center">
+            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-amber-400 to-emerald-500 mb-1 tracking-tight">{hero.name}</h2>
+            <p className="text-lg text-slate-400 font-medium">{hero.lifespan}</p>
+            <p className="mt-2 text-xl italic text-amber-300/90 max-w-2xl mx-auto">{hero.rank}, {hero.unit}</p>
+        </header>
 
-type View = 'home' | 'memorial' | 'presentation' | 'wars' | 'heritage' | 'photography' | 'famous' | 'demography';
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+            <aside className="lg:col-span-4 xl:col-span-3">
+                <div className="sticky top-24 bg-slate-900/50 border border-white/10 rounded-2xl p-4 shadow-lg flex flex-col items-center">
+                    <img 
+                        src={hero.imageUrl} 
+                        alt={`Portrait de ${hero.name}`}
+                        className="w-40 h-40 object-cover rounded-full border-4 border-slate-700/80 mb-4"
+                    />
+                    <div className="w-full">
+                        <h3 className="text-lg font-bold text-amber-400 mb-3 tracking-wide border-b border-slate-700 pb-2 text-center">FICHE D'ACTION</h3>
+                        <div className="text-slate-300 space-y-3 pt-2 text-sm">
+                            <div>
+                                <p className="font-semibold text-slate-400 uppercase text-xs tracking-wider">Né(e)</p>
+                                <p>{hero.birthPlace}</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-slate-400 uppercase text-xs tracking-wider">Théâtre</p>
+                                <p>{hero.theater}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div className="lg:col-span-8 xl:col-span-9 prose-custom text-slate-300 max-w-none space-y-6 text-lg leading-relaxed">
+                <div>
+                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mb-2 tracking-tight">Acte de bravoure</h3>
+                    <p>{hero.act}</p>
+                </div>
+                <div>
+                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mb-2 tracking-tight">Bilan</h3>
+                    <p>{hero.outcome}</p>
+                </div>
+                 <div>
+                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mb-2 tracking-tight">Décorations</h3>
+                    <ul className="list-disc list-inside">
+                        {hero.decorations.map((d, i) => <li key={i}>{d}</li>)}
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 !mb-2 tracking-tight">Lien avec Zuhéros</h3>
+                    <p>{hero.zuhérosConnection}</p>
+                </div>
+            </div>
+        </div>
+      </article>
+);
+
+
+const HeroesPage: React.FC<{
+    currentIndex: number;
+    setCurrentIndex: (index: number) => void;
+    setView: (view: View) => void;
+}> = ({ currentIndex, setCurrentIndex, setView }) => {
+
+    const goToSlide = (slideIndex: number) => {
+        setCurrentIndex(slideIndex);
+    };
+
+    const goToPrevious = useCallback(() => {
+        const isFirstSlide = currentIndex === 0;
+        const newIndex = isFirstSlide ? heroesData.length - 1 : currentIndex - 1;
+        setCurrentIndex(newIndex);
+    }, [currentIndex, setCurrentIndex]);
+
+    const goToNext = useCallback(() => {
+        const isLastSlide = currentIndex === heroesData.length - 1;
+        const newIndex = isLastSlide ? 0 : currentIndex + 1;
+        setCurrentIndex(newIndex);
+    }, [currentIndex, setCurrentIndex]);
+
+    const currentHero = heroesData[currentIndex];
+
+    return (
+      <ContentPageLayout setView={setView}>
+        <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-6 tracking-tight">
+          Héros de l'Armée
+        </h1>
+        <div className="prose-custom text-slate-300 max-w-none space-y-4 text-lg leading-relaxed mb-8">
+            <p>Au-delà du sacrifice ultime, de nombreux fils de Zuhéros se sont distingués par des actes de bravoure exceptionnels au service de l'Espagne. Cette section rend hommage à dix de ces héros, dont le courage et le sang-froid dans des situations extrêmes ont permis de sauver des vies et de remplir leur mission avec honneur.</p>
+        </div>
+
+        <div className="mt-8 relative">
+            <button onClick={goToPrevious} aria-label="Profil précédent" className="absolute top-1/2 left-0 md:-left-6 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <div key={currentIndex} className="animate-fadeInUp" style={{ animationDuration: '400ms' }}>
+                 <HeroProfile hero={currentHero} />
+            </div>
+            <button onClick={goToNext} aria-label="Profil suivant" className="absolute top-1/2 right-0 md:-right-6 -translate-y-1/2 z-10 bg-slate-800/80 text-white rounded-full p-2 hover:bg-slate-700/80 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+
+        <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
+            {heroesData.map((hero, slideIndex) => (
+                <button
+                    key={slideIndex}
+                    onClick={() => goToSlide(slideIndex)}
+                    className={`h-12 w-12 rounded-full overflow-hidden transition-all duration-300 ease-in-out border-2 ${
+                        currentIndex === slideIndex ? 'border-amber-500 scale-110' : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                    aria-label={`Aller au profil de ${hero.name}`}
+                >
+                    <img src={hero.imageUrl} alt={hero.name} className="w-full h-full object-cover"/>
+                </button>
+            ))}
+        </div>
+      </ContentPageLayout>
+    );
+};
+
+
+type View = 'home' | 'memorial' | 'presentation' | 'wars' | 'heritage' | 'photography' | 'famous' | 'demography' | 'heroes' | 'articles';
+
+interface SearchableItem {
+  type: 'person' | 'page' | 'famous' | 'hero' | 'article';
+  title: string;
+  content: string;
+  id: string | number;
+}
 
 const SideMenu: React.FC<{ 
     currentView: View, 
     setView: (view: View) => void,
     isMenuOpen: boolean,
-    setIsMenuOpen: (isOpen: boolean) => void 
-}> = ({ currentView, setView, isMenuOpen, setIsMenuOpen }) => {
+    setIsMenuOpen: (isOpen: boolean) => void,
+    searchableIndex: SearchableItem[],
+    onResultClick: (item: SearchableItem) => void;
+}> = ({ currentView, setView, isMenuOpen, setIsMenuOpen, searchableIndex, onResultClick }) => {
     const menuGroups = [
          {
             title: '',
@@ -1133,9 +1411,11 @@ const SideMenu: React.FC<{
         {
             title: 'Explorer',
             items: [
-                { id: 'memorial', label: "Mémorial", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /> },
+                { id: 'memorial', label: "Mémorial", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-2.053M15 19.128v-3.863M15 19.128l-2.625.372a9.337 9.337 0 01-4.121-2.053m0 0a9.297 9.297 0 01-2.625-.372m0 0a9.297 9.297 0 01-2.625-.372m0 0l-2.25 2.25m0 0l-2.25 2.25m0 0l2.25 2.25m2.25-2.25l2.25-2.25" transform="scale(0.9) translate(2, 2)"/> },
+                { id: 'articles', label: "Articles", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /> },
                 { id: 'photography', label: "Photographies", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.776 48.776 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /> },
                 { id: 'famous', label: "Zuhérois Connus", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /> },
+                { id: 'heroes', label: "Héros de l'Armée", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0l-4.725 2.885a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /> },
             ]
         },
         {
@@ -1153,18 +1433,29 @@ const SideMenu: React.FC<{
         <>
             <div className={`fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}></div>
             <aside className={`fixed top-0 left-0 h-full w-64 bg-slate-950/80 backdrop-blur-lg border-r border-white/10 z-40 transform transition-transform lg:translate-x-0 flex flex-col ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="flex items-center gap-3 p-4 border-b border-white/10 flex-shrink-0">
-                    <img 
-                        src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
-                        alt="Logo de Zuheros" 
-                        className="h-10 w-auto"
-                    />
-                    <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500">
-                        Mémorial
-                    </h2>
+                <div className="flex items-center justify-between gap-3 p-4 border-b border-white/10 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                        <img 
+                            src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
+                            alt="Logo de Zuheros" 
+                            className="h-10 w-auto"
+                        />
+                        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500">
+                            Mémorial
+                        </h2>
+                    </div>
+                    <button 
+                        onClick={() => setIsMenuOpen(false)} 
+                        className="lg:hidden text-slate-400 hover:text-white p-1 rounded-full hover:bg-slate-800"
+                        aria-label="Fermer le menu"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
+
+                <GlobalSearch searchableIndex={searchableIndex} onResultClick={onResultClick} />
                 
-                <nav className="flex-grow p-2 overflow-y-auto">
+                <nav className="flex-grow p-2 overflow-y-auto no-scrollbar">
                     {menuGroups.map((group, groupIndex) => (
                         <div key={groupIndex} className="mt-4 first:mt-0">
                             {group.title && <h3 className="px-4 mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">{group.title}</h3>}
@@ -1179,7 +1470,7 @@ const SideMenu: React.FC<{
                                                 : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
                                             }`}
                                         >
-                                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                                                 {item.icon}
                                             </svg>
                                             {item.label}
@@ -1199,72 +1490,266 @@ const SideMenu: React.FC<{
     );
 }
 
-const HomePage: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
+const HomePage: React.FC<{ setView: (view: View) => void, stats: Record<string, number>, navigateToArticle: (id: string) => void }> = ({ setView, stats, navigateToArticle }) => {
+
+    const useInView = (options?: IntersectionObserverInit) => {
+        const ref = useRef<HTMLDivElement>(null);
+        const [isInView, setIsInView] = useState(false);
+
+        useEffect(() => {
+            const observer = new IntersectionObserver(([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsInView(true);
+                    observer.unobserve(entry.target);
+                }
+            }, options);
+
+            if (ref.current) {
+                observer.observe(ref.current);
+            }
+
+            return () => {
+                if (ref.current) {
+                    observer.unobserve(ref.current);
+                }
+            };
+        }, [ref, options]);
+
+        return [ref, isInView] as const;
+    };
+
+    const useCountUp = (end: number, duration = 2000, startAnimation: boolean) => {
+        const [count, setCount] = useState(0);
+        const frameRate = 1000 / 60;
+        const totalFrames = Math.round(duration / frameRate);
+
+        const easeOutCubic = (t: number) => (--t) * t * t + 1;
+
+        useEffect(() => {
+            if (!startAnimation) return;
+
+            let frame = 0;
+            const counter = setInterval(() => {
+                frame++;
+                const progress = easeOutCubic(frame / totalFrames);
+                const currentCount = Math.round(end * progress);
+                setCount(currentCount);
+
+                if (frame === totalFrames) {
+                    clearInterval(counter);
+                    setCount(end);
+                }
+            }, frameRate);
+
+            return () => clearInterval(counter);
+        }, [end, duration, startAnimation]);
+
+        return count;
+    };
     
-    const navItems = [
-        { id: 'memorial', title: "Mémorial des Soldats", description: "Explorez les fiches individuelles de ceux qui sont tombés.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />, span: "md:col-span-2" },
-        { id: 'photography', title: "Photographies", description: "Voyagez dans le temps à travers des images inédites.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.776 48.776 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /> },
-        { id: 'famous', title: "Zuhérois Connus", description: "Découvrez les figures qui ont marqué l'histoire du village.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /> },
-        { id: 'presentation', title: "Présentation", description: "L'histoire et l'âme d'un village morisque.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /> },
-        { id: 'wars', title: "Les Guerres", description: "Le lourd tribut payé par les fils de Zuheros.", icon: <path d="M11.25 3.25l6.5 6.5-6.5 6.5" strokeLinecap="round" strokeLinejoin="round" transform="scale(1.2) translate(-2, -1)" /> },
-        { id: 'heritage', title: "Héritage", description: "Un patrimoine culturel et mémoriel en sursis.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" /> },
-        { id: 'demography', title: "Démographie", description: "L'impact des conflits sur la population.", icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v18M10.125 7.5v13.5M16.5 12v9.5M22.875 5.5v15.5" transform="scale(0.8) translate(3, 1)" /> },
+    const [statsRef, statsInView] = useInView({ threshold: 0.5 });
+    const animatedTotal = useCountUp(stats.total, 2000, statsInView);
+    const animatedHispano = useCountUp(stats.hispano, 2000, statsInView);
+    const animatedRif = useCountUp(stats.rif, 2000, statsInView);
+    const animatedCivil = useCountUp(stats.civil + stats.disappeared, 2000, statsInView);
+    const animatedModern = useCountUp(stats.modern, 2000, statsInView);
+
+    const featuredItems = [
+        { id: 'memorial', title: "Mémorial des Soldats", description: "Consultez les fiches individuelles de ceux qui sont tombés.", imageUrl: "https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/574503317_2237776090037940_1333795810195789276_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=127cfc&_nc_ohc=7vtG3SR03EYQ7kNvwEK0Vyp&_nc_oc=Adlhf0Q5BnHBj7olBXlF9egkohfVAR45md_ah1Y5iCO5ANEeuBpDKfm5uZrXCN0c9OvN-DD6aD4lwbaInjUNWyj9&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=Z3pn3s_vBKeTqpK8SpjRzQ&oh=00_AfcR3f_a0PcrQgsAFPKtRAeeMZRJQ7CDperUKhwl1HBZEw&oe=690A79A7" },
+        { id: 'heroes', title: "Héros de l'Armée", description: "Découvrez les actes de bravoure qui ont marqué l'histoire.", imageUrl: "https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/574917333_2239737603175122_811747322336274673_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=127cfc&_nc_ohc=uLXePwHj7n8Q7kNvwFbTYgB&_nc_oc=Admh5MpWHEaHg2nKSjkGqznPxxHMGvjl0QT4JxjrAH2olkep9Rk4gohEk_ahIlpAULj6COgmZEXq1pqiOcX-vDsD&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=A-iosCTuKPYoFGkNJx8TiQ&oh=00_AfjDIW5dZqRxX5q9UaXbxu8ebKBHkfgs7y7TJvjgtNbBDA&oe=690CF66D" },
+        { id: 'photography', title: "Photographies d'Archives", description: "Un voyage visuel dans le passé de Zuheros.", imageUrl: "https://cdn.unwatermark.ai/datarm7/unwatermark/image-watermark-auto-remove-kontext/2025-10-31/output/786f71dc-a7ba-4148-882e-2d292015375f.jpg?x-oss-process=image/resize,m_fixed,limit_0,w_1024,h_1024" },
+        { id: 'wars', title: "Les Guerres", description: "Comprenez le lourd tribut payé par le village.", imageUrl: "https://scontent-cdg4-3.xx.fbcdn.net/v/t39.30808-6/573853699_2237758466706369_4598631580543160840_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_ohc=NiEbfeM5QysQ7kNvwHCM6D6&_nc_oc=Adnh5vFJWuCesGhUkSa7mZFY5NWlhiGlGmQ06olWCyhCN6hgDzSEaY_qWNzl7SUnLvDKqTBfOF5HGyZdcYF2QbcB&_nc_zt=23&_nc_ht=scontent-cdg4-3.xx&_nc_gid=CpxALNjhKfyAtCYCoZGXcw&oh=00_AfcDKyCT1Vlkd5qWTgYICz1gAldWWB3nL5zEa3zdNuUO8w&oe=690A4C4B" },
     ];
 
-    const CardLink: React.FC<{ item: typeof navItems[0] }> = ({ item }) => (
-        <button
-            onClick={() => setView(item.id as View)}
-            className={`animate-fadeInUp group relative text-left p-6 rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-xl transition-all duration-300 hover:bg-slate-800/70 hover:border-blue-500/50 ${item.span || ''}`}
-        >
-            <div className="flex items-start gap-4">
-                 <div className="p-2 bg-slate-800 rounded-lg border border-slate-700/80">
-                    <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">{item.icon}</svg>
-                 </div>
-                 <div>
-                    <h3 className="font-bold text-slate-100 text-lg">{item.title}</h3>
-                    <p className="text-slate-400 text-sm mt-1">{item.description}</p>
-                 </div>
-            </div>
-        </button>
-    );
-
     return (
-        <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
-             <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute top-1/2 left-1/2 w-auto min-w-full min-h-full max-w-none -translate-x-1/2 -translate-y-1/2 z-0 object-cover"
-            >
-                <source src="https://videos.openai.com/az/vg-assets/assets%2Ftask_01jr9755jcew09en99avffkypn%2Ftask_01jr9755jcew09en99avffkypn_genid_49acb12e-309b-4f55-8bf2-63ad5588924a_25_04_07_22_51_900792%2Fvideos%2F00001_228476452%2Fsource.mp4?se=2025-11-08T04%3A16%3A54Z&sp=r&sv=2024-08-04&sr=b&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-02T03%3A42%3A05Z&ske=2025-11-09T03%3A47%3A05Z&sks=b&skv=2024-08-04&sig=aZ7tM5R2ZaCA4Ji%2BoGOlkMaarfcE9lCZtWggsGwhYqM%3D&ac=oaivgprodscus2" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-[--background-color] opacity-80 z-10"></div>
-            
-            <div className="relative z-20 w-full flex flex-col items-center">
-                <div className="text-center mb-10 animate-fadeInUp">
-                     <img 
-                        src="https://videos.openai.com/az/vg-assets/task_01k8wjvr8dfhdrbrv0vbp015h1%2F1761895964_img_1.webp?se=2025-11-07T11%3A05%3A17Z&sp=r&sv=2024-08-04&sr=b&skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-11-01T03%3A53%3A16Z&ske=2025-11-08T03%3A58%3A16Z&sks=b&skv=2024-08-04&sig=kiY1bNV84kRTZ8%2BD4Cit1Ua9P2LD%2B5wMK1JEF9vF/dA%3D&ac=oaivgprodscus2" 
-                        alt="Logo de Zuheros" 
-                        className="h-20 w-auto mx-auto mb-4"
+        <div className="bg-background-color text-text-primary">
+            {/* Hero Section */}
+            <header className="relative h-screen flex flex-col items-center justify-center text-center text-white overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full">
+                    <img
+                        src="https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/576401573_2240076663141216_5907389713524232615_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_ohc=X-JLLAhLxcAQ7kNvwH-YRuc&_nc_oc=Adk7Af5l3Yfql5TOqDw2VerEV9eWk6TOt7uK2LvLganwKZ0nprc1tqw5GuoONOYEFjg4RCdB_aE0rXyAP3mwbUVf&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=QFww8LwaZYRa0wW6uW9gIQ&oh=00_AfgYuG1qOhOSiSBF7mlV24YHvo-qXxLSfsA4W_xb895hrQ&oe=690D8962"
+                        alt="Vue panoramique de Zuheros"
+                        className="absolute w-full h-full object-cover animate-ken-burns"
                     />
-                    <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-rose-600 to-amber-400 mb-2 tracking-tight">
+                    <div className="absolute inset-0 bg-black/70"></div>
+                </div>
+                <div className="relative z-10 p-4 animate-fadeInUp" style={{ animationDelay: '300ms' }}>
+                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-rose-400 to-amber-300">
                         Mémorial de Zuheros
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto">
+                    <p className="mt-4 text-lg md:text-2xl max-w-3xl mx-auto text-slate-200">
                         Un sanctuaire numérique dédié à la mémoire, à l'héritage et à la résilience d'un village andalou.
                     </p>
+                    <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onClick={() => setView('memorial')}
+                            className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-blue-500 transition-transform hover:scale-105 shadow-lg shadow-blue-500/20"
+                        >
+                            Explorer le Mémorial
+                        </button>
+                        <button
+                            onClick={() => setView('presentation')}
+                            className="bg-slate-700/50 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-slate-600/50 transition-transform hover:scale-105"
+                        >
+                            Découvrir l'Histoire
+                        </button>
+                    </div>
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl w-full">
-                    {navItems.map((item, index) => (
-                        <div key={item.id} className={item.span || ''} style={{ animationDelay: `${150 + index * 50}ms` }}>
-                            <CardLink item={item} />
+                <a href="#main-content" className="absolute bottom-10 z-10 animate-bounce-subtle" aria-label="Faire défiler vers le contenu principal">
+                    <svg className="w-8 h-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </a>
+            </header>
+            
+            <main id="main-content" className="relative z-10">
+                <section className="py-20 bg-slate-950/50">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center max-w-3xl mx-auto">
+                             <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500 mb-4 tracking-tight">Le prix de l'Histoire</h2>
+                            <p className="text-xl text-slate-300">
+                                À travers les conflits qui ont façonné l'Espagne, le village de Zuheros a payé un lourd tribut. Ce mémorial honore chaque vie perdue et raconte l'histoire d'une communauté marquée par le courage et le sacrifice.
+                            </p>
                         </div>
-                    ))}
-                </div>
-            </div>
+                        
+                        <div ref={statsRef} className="mt-16 grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
+                            <div className="bg-slate-800/50 p-6 rounded-lg">
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-500">{animatedTotal}</p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">Vies honorées</p>
+                            </div>
+                            <div className="bg-slate-800/50 p-6 rounded-lg">
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">{animatedHispano}</p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">Guerre de 1898</p>
+                            </div>
+                             <div className="bg-slate-800/50 p-6 rounded-lg">
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">{animatedRif}</p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">Guerre du Rif</p>
+                            </div>
+                             <div className="bg-slate-800/50 p-6 rounded-lg">
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600">{animatedCivil}</p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">Guerre Civile</p>
+                            </div>
+                             <div className="bg-slate-800/50 p-6 rounded-lg">
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-400 to-slate-200">{animatedModern}</p>
+                                <p className="text-slate-400 text-sm font-medium mt-2">Missions Modernes</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="py-20">
+                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div className="animate-fadeInUp opacity-0" style={{ animationDelay: '200ms' }}>
+                                <img 
+                                    src="https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/576815842_2240619636420252_8524094190575586642_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=ez10923-hikQ7kNvwF23vgi&_nc_oc=AdkpLUXJJkr1wEiVlUAE0UyIrVNX-E7g2rcTcoiFAEpAnpYVOfDNQ1EDo9HVn45LbNd3BkdzVTkE9j1w7xSeRly-&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=P2PRCha2WHd6mf_V4xiuDQ&oh=00_AfjSIcd5eiWabY_-5wU8_AIkrO8ejDLwOx2aNtCoTSJhCg&oe=690E6808"
+                                    alt="Vue d'une rue historique de Zuhéros"
+                                    className="rounded-2xl shadow-2xl shadow-black/40 aspect-video object-cover w-full"
+                                />
+                            </div>
+                            <div className="animate-fadeInUp opacity-0" style={{ animationDelay: '400ms' }}>
+                                <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Un Village Forgé par l'Histoire</h2>
+                                <p className="mt-4 text-lg text-slate-300">
+                                    Niché au cœur de l'Andalousie, Zuhéros est bien plus qu'un simple village. C'est un lieu de mémoire où chaque pierre raconte une histoire de résilience, de survie et d'héritage morisque. Sa trajectoire unique, marquée par les guerres et une culture préservée, en fait un témoin exceptionnel de l'histoire espagnole.
+                                </p>
+                                <div className="mt-6">
+                                    <button
+                                        onClick={() => setView('presentation')}
+                                        className="inline-flex items-center gap-2 bg-slate-700/50 border border-slate-600 text-white font-bold py-2 px-6 rounded-lg text-md hover:bg-slate-600/50 transition-transform hover:scale-105 group"
+                                    >
+                                        Découvrir son histoire
+                                        <span className="transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="py-20 bg-slate-950/50">
+                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <header className="text-center mb-12">
+                            <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Plongez dans la Mémoire</h2>
+                        </header>
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {featuredItems.map((item, index) => (
+                                <div key={item.id} className="animate-fadeInUp opacity-0" style={{ animationDelay: `${200 + index * 100}ms` }}>
+                                    <button onClick={() => setView(item.id as View)} className="group relative block w-full h-96 rounded-2xl overflow-hidden text-left shadow-2xl shadow-black/40">
+                                        <img src={item.imageUrl} alt={item.title} className="absolute w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                                        <div className="relative h-full flex flex-col justify-end p-6">
+                                            <h3 className="text-2xl font-bold text-white">{item.title}</h3>
+                                            <p className="text-slate-300 mt-2">{item.description}</p>
+                                            <div className="mt-4 text-blue-400 font-semibold flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                Découvrir <span className="transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                     </div>
+                </section>
+                <section className="py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <header className="text-center mb-12 animate-fadeInUp opacity-0" style={{ animationDelay: '200ms' }}>
+                            <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Articles et Enquêtes</h2>
+                            <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                                Plongez dans des récits détaillés et des enquêtes sur les événements qui ont façonné l'histoire de Zuheros et de ses habitants.
+                            </p>
+                        </header>
+                        <div className="max-w-5xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '400ms' }}>
+                            <div className="group bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden grid md:grid-cols-2 transition-all duration-300 hover:bg-slate-900/70 hover:shadow-2xl hover:shadow-black/40">
+                                <div className="relative h-64 md:h-auto overflow-hidden">
+                                    <img 
+                                        src="https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/577016714_2240034243145458_8243492354324235156_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_ohc=LannzC-ljpgQ7kNvwHzCLDz&_nc_oc=AdlxTymy3-6sbs3Ufq_Ag5CpEpHOs-g7ayEGa-dYHE9eoKjqWczaA5ANG1bwxxbGDFk6AtHuwRMIRiHNVmfUscij&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=93mAHSvaHowTcT42P__6Ew&oh=00_Afg7GqnD94llUrMMpSmpkcwosNXlvSA21QKFkW3yv-VKMg&oe=690D726E" 
+                                        alt="Victimes du 11-M"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                </div>
+                                <div className="p-8 flex flex-col justify-center">
+                                    <h3 className="text-2xl font-bold text-slate-100">Zuhérois Victimes du Terrorisme</h3>
+                                    <p className="mt-3 text-slate-400 leading-relaxed line-clamp-3 md:line-clamp-4">
+                                        Le 11 mars 2004, une tragédie frappait Madrid, emportant quatre membres de la famille Abenfassi–Sanayes, une lignée partagée entre l'Andalousie et l'Uruguay. Récit d'un deuil qui a traversé l'océan.
+                                    </p>
+                                    <button
+                                        onClick={() => navigateToArticle('11-m')}
+                                        className="mt-6 inline-flex items-center gap-2 text-blue-400 font-semibold hover:text-blue-300 transition-colors self-start"
+                                    >
+                                        Lire l'article
+                                        <span className="transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="text-center mt-12">
+                                <button
+                                    onClick={() => setView('articles')}
+                                    className="bg-slate-700/50 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-slate-600/50 transition-transform hover:scale-105"
+                                >
+                                    Voir tous les articles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            <Footer setView={setView} />
         </div>
     );
+};
+
+const pageContents = {
+  presentation: { title: "Zuhéros, histoire d’un village andalou (XVIᵉ–XXIᵉ siècle)", content: "Zuhéros est un nom que les grandes synthèses historiques ignorent souvent..." },
+  wars: { title: "Les guerres et le prix payé", content: "Reportage – Mémoire, guerres et survie..." },
+  heritage: { title: "Zuhéros, l’héritage en sursis", content: "Enquête au long cours dans le dernier village morisque d’Espagne..." },
+  demography: { title: "Démographie : Le village à l'épreuve des guerres", content: "Une population fauchée par les conflits du XXᵉ siècle..." },
+};
+
+const articleContents = {
+  '11-m': { title: "Zuhérois Victimes du Terrorisme", content: "La famille Abenfassi–Sanayes, Hispano-Uruguayens de Zuhéros..." },
+  'felicia-abenel': { title: "Félicia ABENEL, la fiancée veuve de Zuhéros", content: "On la présente parfois comme « la fiancée-veuve de Zuhéros ». Cette formule, qui pourrait passer pour une coquetterie de romancier, résume pourtant la vie de Félicia Abenel Jakimi..." },
+  'julia-abasen': { title: "Julia, la mère Zuhéroise qui a attendu son fils", content: "Personne n’osait lui dire frontalement « il est mort ». On parlait de lui comme d’un absent lointain, d’un homme qu’on espérait voir franchir un jour la rue, vieilli, amaigri, mais vivant..." },
+  'mariano-perez': { title: `Mariano dit "Manuel" Perez, Maire de Zuhérois, enfant de la guerre`, content: "On l’a longtemps appelé « el viejo de los Granadinos », le vieux de la Calle de los Granadinos, à Zuhéros Bajo..." },
 };
 
 
@@ -1346,6 +1831,48 @@ const App: React.FC = () => {
     const [currentView, setCurrentView] = useState<View>('home');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
+    const [heroIndex, setHeroIndex] = useState(0);
+    const [famousPersonIndex, setFamousPersonIndex] = useState(0);
+    const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+    const [candleCounts, setCandleCounts] = useState<Record<string, number>>({});
+    const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
+
+    const setView = (view: View) => {
+        setCurrentView(view);
+        setSelectedArticleId(null);
+        window.scrollTo(0, 0);
+    }
+    
+    const navigateToArticle = (id: string) => {
+        setCurrentView('articles');
+        setSelectedArticleId(id);
+        window.scrollTo(0, 0);
+    };
+
+    useEffect(() => {
+        try {
+            const storedCounts = localStorage.getItem('candleCounts');
+            if (storedCounts) {
+                setCandleCounts(JSON.parse(storedCounts));
+            }
+        } catch (error) {
+            console.error("Failed to load candle counts from localStorage", error);
+        }
+    }, []);
+
+    const handleLightCandle = (personId: string) => {
+        setCandleCounts(prevCounts => {
+            const newCount = (prevCounts[personId] || 0) + 1;
+            const newCounts = { ...prevCounts, [personId]: newCount };
+            try {
+                localStorage.setItem('candleCounts', JSON.stringify(newCounts));
+            } catch (error) {
+                console.error("Failed to save candle counts to localStorage", error);
+            }
+            return newCounts;
+        });
+    };
+    
     const stats = useMemo(() => {
         const rif = allPeople.filter(p => p.war === 'Guerre du Rif').length;
         const civil = allPeople.filter(p => p.war === 'Guerre Civile Espagnole' && p.status !== 'Disparu(e)').length;
@@ -1362,48 +1889,206 @@ const App: React.FC = () => {
         }
     }, [allPeople]);
 
+     const searchableIndex: SearchableItem[] = useMemo(() => {
+        const index: SearchableItem[] = [];
+
+        allPeople.forEach(person => {
+            index.push({
+                type: 'person',
+                title: `${person.firstName1} ${person.lastName}`,
+                content: Object.values(person).filter(Boolean).join(' '),
+                id: person.id,
+            });
+        });
+
+        Object.entries(pageContents).forEach(([id, page]) => {
+            index.push({
+                type: 'page',
+                title: page.title,
+                content: page.content,
+                id: id,
+            });
+        });
+
+        Object.entries(articleContents).forEach(([id, article]) => {
+            index.push({
+                type: 'article',
+                title: article.title,
+                content: article.content,
+                id: id,
+            });
+        });
+
+        famousPeopleData.forEach((person, idx) => {
+            index.push({
+                type: 'famous',
+                title: person.name,
+                content: [person.title, person.name, ...person.sections.map(s => s.content)].join(' '),
+                id: idx,
+            });
+        });
+
+        heroesData.forEach((hero, idx) => {
+            index.push({
+                type: 'hero',
+                title: hero.name,
+                content: [hero.rank, hero.name, hero.unit, hero.act, hero.outcome].join(' '),
+                id: idx,
+            });
+        });
+
+        return index;
+    }, [allPeople]);
+
+    const handleSearchResultClick = (result: SearchableItem) => {
+      setIsMenuOpen(false);
+      switch (result.type) {
+        case 'person':
+          const person = allPeople.find(p => p.id === result.id);
+          if (person) setSelectedPerson(person);
+          break;
+        case 'page':
+          setView(result.id as View);
+          break;
+        case 'article':
+          navigateToArticle(result.id as string);
+          break;
+        case 'famous':
+          setView('famous');
+          setFamousPersonIndex(result.id as number);
+          break;
+        case 'hero':
+          setView('heroes');
+          setHeroIndex(result.id as number);
+          break;
+      }
+    };
+
     const renderView = () => {
         switch (currentView) {
             case 'memorial':
-                return <MemorialPage allPeople={allPeople} stats={stats} />;
+                return <MemorialPage allPeople={allPeople} stats={stats} onSelectPerson={setSelectedPerson} />;
             case 'presentation':
-                return <PresentationPage />;
+                return <PresentationPage setView={setView} />;
             case 'wars':
-                return <WarsPage />;
+                return <WarsPage setView={setView} />;
             case 'heritage':
-                return <HeritagePage />;
+                return <HeritagePage setView={setView} />;
             case 'photography':
-                return <PhotographyPage />;
+                return <PhotographyPage setView={setView} />;
             case 'famous':
-                return <FamousPeoplePage />;
+                return <FamousPeoplePage currentIndex={famousPersonIndex} setCurrentIndex={setFamousPersonIndex} setView={setView}/>;
             case 'demography':
-                return <DemographyPage />;
+                return <DemographyPage setView={setView}/>;
+            case 'heroes':
+                return <HeroesPage currentIndex={heroIndex} setCurrentIndex={setHeroIndex} setView={setView} />;
+            case 'articles':
+                 if (selectedArticleId === '11-m') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <Article11M />
+                        </ContentPageLayout>
+                    );
+                 }
+                 if (selectedArticleId === 'felicia-abenel') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <FeliciaAbenelPage />
+                        </ContentPageLayout>
+                    );
+                 }
+                 if (selectedArticleId === 'julia-abasen') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <JuliaAbasenPage />
+                        </ContentPageLayout>
+                    );
+                 }
+                 if (selectedArticleId === 'mariano-perez') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <MarianoPerezPage />
+                        </ContentPageLayout>
+                    );
+                 }
+                return <ArticlesPage onSelectArticle={id => navigateToArticle(id)} setView={setView}/>;
             default:
-                return <MemorialPage allPeople={allPeople} stats={stats} />;
+                return <HomePage setView={setView} stats={stats} navigateToArticle={navigateToArticle} />;
         }
     };
     
-    if (currentView === 'home') {
-        return <HomePage setView={setCurrentView} />;
+    if (currentView === 'home' && !selectedPerson) {
+        return <HomePage setView={setView} stats={stats} navigateToArticle={navigateToArticle} />;
     }
 
     return (
-        <div className="min-h-screen text-white lg:pl-64">
-             <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                className="fixed top-4 left-4 z-50 lg:hidden bg-slate-800/80 p-2 rounded-md text-white hover:bg-slate-700/80 backdrop-blur-sm"
-                aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            >
-                {isMenuOpen ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
+        <div className="min-h-screen text-white">
+            <div className="lg:pl-64">
+                {selectedPerson && (
+                    <PersonDetailPage 
+                        person={selectedPerson} 
+                        onClose={() => setSelectedPerson(null)}
+                        candleCount={candleCounts[selectedPerson.id] || 0}
+                        onLightCandle={handleLightCandle}
+                        warColors={warColors}
+                    />
                 )}
-            </button>
-            <SideMenu currentView={currentView} setView={setCurrentView} isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-            <main>
-                {renderView()}
-            </main>
+                <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                    className={`fixed top-4 left-4 z-50 lg:hidden bg-slate-800/80 p-2 rounded-md text-white hover:bg-slate-700/80 backdrop-blur-sm transition-opacity ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    aria-label="Ouvrir le menu"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                </button>
+                <main>
+                    {renderView()}
+                </main>
+                {!selectedPerson && <Footer setView={setView} />}
+            </div>
+             <SideMenu 
+                currentView={currentView} 
+                setView={setView} 
+                isMenuOpen={isMenuOpen} 
+                setIsMenuOpen={setIsMenuOpen}
+                searchableIndex={searchableIndex}
+                onResultClick={handleSearchResultClick}
+            />
         </div>
     );
 };
