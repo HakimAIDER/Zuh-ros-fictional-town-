@@ -13,6 +13,7 @@ import ArticlesPage from './ArticlesPage';
 import FeliciaAbenelPage from './FeliciaAbenelPage';
 import JuliaAbasenPage from './JuliaAbasenPage';
 import MarianoPerezPage from './MarianoPerezPage';
+import DivisionsPassePage from './DivisionsPassePage';
 
 const warColors: Record<string, { badge: string; text: string; glow: string }> = {
     'Guerre Hispano-Américaine': {
@@ -1490,6 +1491,39 @@ const SideMenu: React.FC<{
     );
 }
 
+const articlesData = [
+    {
+        id: '11-m',
+        title: 'Zuhérois Victimes du Terrorisme',
+        excerpt: 'Le 11 mars 2004, une tragédie frappait Madrid, emportant quatre membres de la famille Abenfassi–Sanayes, une lignée partagée entre l\'Andalousie et l\'Uruguay. Récit d\'un deuil qui a traversé l\'océan.',
+        imageUrl: 'https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/577016714_2240034243145458_8243492354324235156_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_ohc=LannzC-ljpgQ7kNvwHzCLDz&_nc_oc=AdlxTymy3-6sbs3Ufq_Ag5CpEpHOs-g7ayEGa-dYHE9eoKjqWczaA5ANG1bwxxbGDFk6AtHuwRMIRiHNVmfUscij&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=93mAHSvaHowTcT42P__6Ew&oh=00_Afg7GqnD94llUrMMpSmpkcwosNXlvSA21QKFkW3yv-VKMg&oe=690D726E',
+    },
+    {
+        id: 'felicia-abenel',
+        title: 'Félicia ABENEL, la fiancée veuve de Zuhéros',
+        excerpt: 'On la présente parfois comme « la fiancée-veuve de Zuhéros ». Cette formule résume la vie de Félicia Abenel Jakimi, une vie prise dans la tourmente des guerres du XXᵉ siècle et façonnée par un amour interrompu trop tôt.',
+        imageUrl: 'https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/576464301_2240651559750393_7509439508655494911_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=127cfc&_nc_ohc=jhjvIcMQHEsQ7kNvwFZOAfL&_nc_oc=AdkGQ74RbrkjSVYazZmwQ9LqfGJEmLmJB2iE3sVONTHG7ijH7mn4_B370hXWZnVWH0KZ1vmT3PmK9PmpWMsU5iZn&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=zrZyIkGK22QiO9oKXyBD9Q&oh=00_Afi28AePgypwZzfIogLultxUzsmqP0FHFRy4Mly--7896g&oe=690E54E7',
+    },
+    {
+        id: 'julia-abasen',
+        title: 'Julia, la mère Zuhéroise qui a attendu son fils',
+        excerpt: 'Pendant 42 ans, Julia Abasen-Jalifa a attendu le retour de son fils Miguel, disparu pendant la guerre civile. Une histoire de foi maternelle, de deuil impossible et de mémoire, qui trouve une conclusion inattendue 85 ans plus tard.',
+        imageUrl: 'https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/576381320_2240697233079159_8543408555967901535_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=127cfc&_nc_ohc=62PLrzfP81cQ7kNvwGVpjgJ&_nc_oc=Adk0r__bHxcKebrmQsj6z0oj0n6HIfEUmeyaTdBaGUfZq5uCf7DzEIZgb2H2Z1dAmvM6SZnHUS9UIoZtrGjvIT8Z&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=_OH86un6SstikGM49kC6HQ&oh=00_AfghFayrsSXXH1mKThuKIfZQxSTvK4Q9ROFDbwvWW-ZpSg&oe=690E8444',
+    },
+    {
+        id: 'mariano-perez',
+        title: 'Mariano "Manuel" Perez, l\'Enfant de la Guerre',
+        excerpt: 'La trajectoire d\'un homme profondément meurtri qui, devenu maire, a tenté de sauver un village qu’il savait condamné s’il ne s’ouvrait pas, au prix de sa propre réputation.',
+        imageUrl: 'https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/576374200_2240708019744747_3629281447584514383_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_ohc=sWn_qj_1J58Q7kNvwFcML6N&_nc_oc=Adlci-6CMeUoaztCX_CTfTJEc6B8dXhtlGqc5THxDdKItxxecTCIWAVCKGuuMnQSvVZpOJT2XT78Oo1llNV1DM4G&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=CUeyq4c-A9v17j3fuVA_rA&oh=00_AfiYfoaT55suJJ3-SWRXbcqEb0EK_IVBJZzexWq_GN2hAg&oe=690E5FDC',
+    },
+    {
+        id: 'divisions-passe',
+        title: 'Les Zuhérois, les divisions du passé',
+        excerpt: 'Un clivage discret mais profond oppose les Familles Historiques (FHZ) et les Nouvelles Familles (FNZ), révélant deux mémoires et deux manières d\'habiter le village.',
+        imageUrl: 'https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/576803297_2240782933070589_7884498261396094824_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=tSFLF9dEHjMQ7kNvwH9JDzD&_nc_oc=AdmFUwBWMBq0ivSYRu7GOTb4BrkNcHg4vYxnXv4q7raxf0X6dByeETpYW9LseGuDxSohHNT5WF-15f8cXltDAsUZ&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=sEvcLkpTMDBtSrb5tPhzaw&oh=00_Afho2srFIoP4L-aXwGNil3Pto6Dajrd7y5HBVcf98Luipw&oe=690E7501',
+    }
+];
+
 const HomePage: React.FC<{ setView: (view: View) => void, stats: Record<string, number>, navigateToArticle: (id: string) => void }> = ({ setView, stats, navigateToArticle }) => {
 
     const useInView = (options?: IntersectionObserverInit) => {
@@ -1553,6 +1587,33 @@ const HomePage: React.FC<{ setView: (view: View) => void, stats: Record<string, 
     const animatedRif = useCountUp(stats.rif, 2000, statsInView);
     const animatedCivil = useCountUp(stats.civil + stats.disappeared, 2000, statsInView);
     const animatedModern = useCountUp(stats.modern, 2000, statsInView);
+    
+    const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+
+    const goToPrevArticle = useCallback(() => {
+        const isFirst = currentArticleIndex === 0;
+        const newIndex = isFirst ? articlesData.length - 1 : currentArticleIndex - 1;
+        setCurrentArticleIndex(newIndex);
+    }, [currentArticleIndex]);
+
+    const goToNextArticle = useCallback(() => {
+        const isLast = currentArticleIndex === articlesData.length - 1;
+        const newIndex = isLast ? 0 : currentArticleIndex + 1;
+        setCurrentArticleIndex(newIndex);
+    }, [currentArticleIndex]);
+
+    const goToArticle = (index: number) => {
+        setCurrentArticleIndex(index);
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            goToNextArticle();
+        }, 5000); // Change slide every 5 seconds
+        return () => clearTimeout(timer);
+    }, [currentArticleIndex, goToNextArticle]);
+    
+    const currentArticle = articlesData[currentArticleIndex];
 
     const featuredItems = [
         { id: 'memorial', title: "Mémorial des Soldats", description: "Consultez les fiches individuelles de ceux qui sont tombés.", imageUrl: "https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/574503317_2237776090037940_1333795810195789276_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=127cfc&_nc_ohc=7vtG3SR03EYQ7kNvwEK0Vyp&_nc_oc=Adlhf0Q5BnHBj7olBXlF9egkohfVAR45md_ah1Y5iCO5ANEeuBpDKfm5uZrXCN0c9OvN-DD6aD4lwbaInjUNWyj9&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=Z3pn3s_vBKeTqpK8SpjRzQ&oh=00_AfcR3f_a0PcrQgsAFPKtRAeeMZRJQ7CDperUKhwl1HBZEw&oe=690A79A7" },
@@ -1667,6 +1728,69 @@ const HomePage: React.FC<{ setView: (view: View) => void, stats: Record<string, 
                 </section>
 
                 <section className="py-20 bg-slate-950/50">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <header className="text-center mb-12 animate-fadeInUp opacity-0" style={{ animationDelay: '200ms' }}>
+                            <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Articles et Enquêtes</h2>
+                            <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                                Plongez dans des récits détaillés et des enquêtes sur les événements qui ont façonné l'histoire de Zuheros et de ses habitants.
+                            </p>
+                        </header>
+                        <div className="max-w-5xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '400ms' }}>
+                            <div className="relative group">
+                                <div key={currentArticleIndex} className="animate-fadeInUp bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden grid md:grid-cols-2 transition-all duration-300 hover:bg-slate-900/70 hover:shadow-2xl hover:shadow-black/40">
+                                    <div className="relative h-64 md:h-auto overflow-hidden">
+                                        <img 
+                                            src={currentArticle.imageUrl} 
+                                            alt={currentArticle.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    </div>
+                                    <div className="p-8 flex flex-col justify-center">
+                                        <h3 className="text-2xl font-bold text-slate-100">{currentArticle.title}</h3>
+                                        <p className="mt-3 text-slate-400 leading-relaxed line-clamp-3 md:line-clamp-4">
+                                            {currentArticle.excerpt}
+                                        </p>
+                                        <button
+                                            onClick={() => navigateToArticle(currentArticle.id)}
+                                            className="mt-6 inline-flex items-center gap-2 text-blue-400 font-semibold hover:text-blue-300 transition-colors self-start"
+                                        >
+                                            Lire l'article
+                                            <span className="transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onClick={goToPrevArticle} aria-label="Article précédent" className="absolute top-1/2 left-4 -translate-y-1/2 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                <button onClick={goToNextArticle} aria-label="Article suivant" className="absolute top-1/2 right-4 -translate-y-1/2 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </div>
+                             <div className="flex gap-2 p-2 mt-4 overflow-x-auto no-scrollbar justify-center">
+                                {articlesData.map((article, index) => (
+                                    <button 
+                                        key={article.id}
+                                        onClick={() => goToArticle(index)}
+                                        className={`flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden transition-all duration-300 ${currentArticleIndex === index ? 'ring-2 ring-blue-500 scale-105' : 'opacity-60 hover:opacity-100'}`}
+                                        aria-label={`Aller à l'article : ${article.title}`}
+                                    >
+                                        <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="text-center mt-8">
+                                <button
+                                    onClick={() => setView('articles')}
+                                    className="bg-slate-700/50 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-slate-600/50 transition-transform hover:scale-105"
+                                >
+                                    Voir tous les articles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section className="py-20">
                      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                         <header className="text-center mb-12">
                             <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Plongez dans la Mémoire</h2>
@@ -1690,48 +1814,6 @@ const HomePage: React.FC<{ setView: (view: View) => void, stats: Record<string, 
                         </div>
                      </div>
                 </section>
-                <section className="py-20">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <header className="text-center mb-12 animate-fadeInUp opacity-0" style={{ animationDelay: '200ms' }}>
-                            <h2 className="text-4xl font-extrabold text-slate-100 tracking-tight">Articles et Enquêtes</h2>
-                            <p className="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
-                                Plongez dans des récits détaillés et des enquêtes sur les événements qui ont façonné l'histoire de Zuheros et de ses habitants.
-                            </p>
-                        </header>
-                        <div className="max-w-5xl mx-auto animate-fadeInUp opacity-0" style={{ animationDelay: '400ms' }}>
-                            <div className="group bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden grid md:grid-cols-2 transition-all duration-300 hover:bg-slate-900/70 hover:shadow-2xl hover:shadow-black/40">
-                                <div className="relative h-64 md:h-auto overflow-hidden">
-                                    <img 
-                                        src="https://scontent-cdg4-1.xx.fbcdn.net/v/t39.30808-6/577016714_2240034243145458_8243492354324235156_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_ohc=LannzC-ljpgQ7kNvwHzCLDz&_nc_oc=AdlxTymy3-6sbs3Ufq_Ag5CpEpHOs-g7ayEGa-dYHE9eoKjqWczaA5ANG1bwxxbGDFk6AtHuwRMIRiHNVmfUscij&_nc_zt=23&_nc_ht=scontent-cdg4-1.xx&_nc_gid=93mAHSvaHowTcT42P__6Ew&oh=00_Afg7GqnD94llUrMMpSmpkcwosNXlvSA21QKFkW3yv-VKMg&oe=690D726E" 
-                                        alt="Victimes du 11-M"
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
-                                </div>
-                                <div className="p-8 flex flex-col justify-center">
-                                    <h3 className="text-2xl font-bold text-slate-100">Zuhérois Victimes du Terrorisme</h3>
-                                    <p className="mt-3 text-slate-400 leading-relaxed line-clamp-3 md:line-clamp-4">
-                                        Le 11 mars 2004, une tragédie frappait Madrid, emportant quatre membres de la famille Abenfassi–Sanayes, une lignée partagée entre l'Andalousie et l'Uruguay. Récit d'un deuil qui a traversé l'océan.
-                                    </p>
-                                    <button
-                                        onClick={() => navigateToArticle('11-m')}
-                                        className="mt-6 inline-flex items-center gap-2 text-blue-400 font-semibold hover:text-blue-300 transition-colors self-start"
-                                    >
-                                        Lire l'article
-                                        <span className="transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="text-center mt-12">
-                                <button
-                                    onClick={() => setView('articles')}
-                                    className="bg-slate-700/50 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-slate-600/50 transition-transform hover:scale-105"
-                                >
-                                    Voir tous les articles
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </main>
             <Footer setView={setView} />
         </div>
@@ -1750,6 +1832,7 @@ const articleContents = {
   'felicia-abenel': { title: "Félicia ABENEL, la fiancée veuve de Zuhéros", content: "On la présente parfois comme « la fiancée-veuve de Zuhéros ». Cette formule, qui pourrait passer pour une coquetterie de romancier, résume pourtant la vie de Félicia Abenel Jakimi..." },
   'julia-abasen': { title: "Julia, la mère Zuhéroise qui a attendu son fils", content: "Personne n’osait lui dire frontalement « il est mort ». On parlait de lui comme d’un absent lointain, d’un homme qu’on espérait voir franchir un jour la rue, vieilli, amaigri, mais vivant..." },
   'mariano-perez': { title: `Mariano dit "Manuel" Perez, Maire de Zuhérois, enfant de la guerre`, content: "On l’a longtemps appelé « el viejo de los Granadinos », le vieux de la Calle de los Granadinos, à Zuhéros Bajo..." },
+  'divisions-passe': { title: "Les Zuhérois, les divisions du passé", content: "À Zuhéros, petite ville andalouse perdue entre oliveraies et collines, les lignes de fracture ne suivent pas les contours habituels de la politique espagnole..." },
 };
 
 
@@ -2047,7 +2130,23 @@ const App: React.FC = () => {
                         </ContentPageLayout>
                     );
                  }
-                return <ArticlesPage onSelectArticle={id => navigateToArticle(id)} setView={setView}/>;
+                 if (selectedArticleId === 'divisions-passe') {
+                    return (
+                        <ContentPageLayout setView={setView}>
+                             <button 
+                                onClick={() => setSelectedArticleId(null)} 
+                                className="mb-6 flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                                </svg>
+                                Retour aux articles
+                            </button>
+                            <DivisionsPassePage />
+                        </ContentPageLayout>
+                    );
+                 }
+                return <ArticlesPage articlesData={articlesData} onSelectArticle={id => navigateToArticle(id)} setView={setView}/>;
             default:
                 return <HomePage setView={setView} stats={stats} navigateToArticle={navigateToArticle} />;
         }
